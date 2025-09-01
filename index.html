@@ -13,7 +13,6 @@
     <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/lucide/0.263.1/umd/lucide.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     
     <!-- PWA Manifest -->
@@ -106,10 +105,6 @@
 
     <script type="text/babel">
         const { useState, useEffect, useCallback, useRef } = React;
-        const { 
-            Music, Volume2, Play, Pause, RotateCcw, Star, 
-            Heart, Mic, Trophy, Github, Smartphone, Zap, Sparkles
-        } = lucide;
 
         // Audio Context optimizado para móvil
         let audioContext;
@@ -222,13 +217,12 @@
             ];
 
             const createHearts = useCallback((x, y) => {
-                // Adaptar posición para móvil
                 const rect = containerRef.current?.getBoundingClientRect();
                 const adjustedX = isMobile ? (rect ? x - rect.left : x) : x;
                 const adjustedY = isMobile ? (rect ? y - rect.top : y) : y;
 
                 const newHearts = [];
-                const heartCount = isMobile ? 3 : 5; // Menos corazones en móvil para rendimiento
+                const heartCount = isMobile ? 3 : 5;
                 
                 for (let i = 0; i < heartCount; i++) {
                     newHearts.push({
@@ -240,7 +234,6 @@
                 }
                 setHearts(prev => [...prev, ...newHearts]);
                 
-                // Vibrar en móvil
                 vibrate([30]);
                 
                 setTimeout(() => {
@@ -250,7 +243,7 @@
 
             const showPrizeAnimation = (prize) => {
                 setShowPrize(prize);
-                vibrate([100, 50, 100]); // Vibración especial para premios
+                vibrate([100, 50, 100]);
                 setTimeout(() => setShowPrize(''), 2500);
             };
 
@@ -365,7 +358,6 @@
 
                 const { freq } = bassNotes[stringNum];
                 
-                // Audio optimizado para móvil
                 const oscillator = ctx.createOscillator();
                 const gainNode = ctx.createGain();
                 
@@ -375,7 +367,6 @@
                 oscillator.frequency.setValueAtTime(freq, ctx.currentTime);
                 oscillator.type = 'sawtooth';
                 
-                // Envelope más rápido para móvil
                 gainNode.gain.setValueAtTime(0, ctx.currentTime);
                 gainNode.gain.linearRampToValueAtTime(0.6, ctx.currentTime + 0.005);
                 gainNode.gain.exponentialRampToValueAtTime(0.3, ctx.currentTime + 0.08);
@@ -387,13 +378,11 @@
                 setActiveString(stringNum);
                 setTimeout(() => setActiveString(null), 150);
                 
-                // Crear corazones
                 if (event) {
                     const touch = event.touches?.[0] || event;
                     createHearts(touch.clientX || event.clientX, touch.clientY || event.clientY);
                 }
                 
-                // Lógica de lecciones
                 if (lessons[currentLesson].target === stringNum) {
                     setScore(score + 15);
                     setStreak(prev => prev + 1);
@@ -440,7 +429,6 @@
                 ref: containerRef,
                 className: "min-h-screen bg-gradient-to-br from-purple-400 via-pink-300 to-yellow-300 p-2 sm:p-4 relative overflow-hidden"
             }, [
-                // Floating Hearts (optimizados para móvil)
                 ...hearts.map(heart => React.createElement('div', {
                     key: heart.id,
                     className: "absolute text-xl sm:text-2xl pointer-events-none float z-50",
@@ -450,7 +438,6 @@
                     }
                 }, heart.emoji)),
 
-                // Prize Animation (optimizado)
                 showPrize && React.createElement('div', {
                     className: "fixed inset-0 flex items-center justify-center z-50 pointer-events-none px-4"
                 }, React.createElement('div', {
@@ -458,31 +445,28 @@
                 }, showPrize)),
 
                 React.createElement('div', { className: "max-w-4xl mx-auto relative" }, [
-                    // Header optimizado para móvil
                     React.createElement('div', { className: "text-center mb-4 sm:mb-8" }, [
                         React.createElement('h1', {
                             className: "text-2xl sm:text-4xl font-bold text-white mb-2 flex items-center justify-center gap-2 flex-wrap mobile-text"
                         }, [
-                            React.createElement(Music, { className: "text-pink-600", size: isMobile ? 30 : 40 }),
-                            "🎸 Bajo para Eloisa 💕",
-                            React.createElement(Star, { className: "text-yellow-400 bounce", size: isMobile ? 30 : 40 })
+                            '🎸',
+                            " Bajo para Eloisa 💕",
+                            '⭐'
                         ]),
                         React.createElement('p', {
                             className: "text-white text-sm sm:text-lg mobile-text"
                         }, "¡Aprende y diviértete tocando! 🎵"),
                         
-                        // Indicador móvil
                         isMobile && React.createElement('div', {
                             className: "mt-2 bg-white bg-opacity-20 rounded-full px-3 py-1 inline-flex items-center gap-1"
                         }, [
-                            React.createElement(Smartphone, { size: 16, className: "text-white" }),
+                            '📱',
                             React.createElement('span', {
                                 className: "text-white text-xs"
                             }, "Modo Móvil Activado! 📱")
                         ])
                     ]),
 
-                    // Stats compactos para móvil
                     React.createElement('div', { className: "flex justify-center gap-2 sm:gap-4 mb-4 sm:mb-6 flex-wrap px-2" }, [
                         React.createElement('div', {
                             className: "bg-white rounded-full px-2 sm:px-4 py-1 sm:py-2 shadow-lg"
@@ -509,7 +493,6 @@
                         }, `${detectedNote} 🎵`))
                     ]),
 
-                    // Lesson Info compacto
                     React.createElement('div', { className: "bg-white rounded-xl p-3 sm:p-6 shadow-xl mb-4 sm:mb-8 mx-2 sm:mx-0" }, [
                         React.createElement('h2', {
                             className: "text-lg sm:text-2xl font-bold text-gray-800 mb-1 sm:mb-2"
@@ -522,23 +505,19 @@
                         }, lessons[currentLesson].instructions)
                     ]),
 
-                    // Micrófono (simplificado para móvil)
                     React.createElement('div', { className: "flex justify-center mb-4 sm:mb-6" }, [
                         React.createElement('button', {
                             onClick: isListening ? stopListening : startListening,
                             className: `touch-btn ${isListening ? 'bg-red-500 hover:bg-red-600' : 'bg-green-500 hover:bg-green-600'} text-white px-3 sm:px-6 py-2 sm:py-3 rounded-full shadow-lg flex items-center gap-2 font-bold text-sm sm:text-base`
                         }, [
-                            React.createElement(Mic, { size: isMobile ? 18 : 20 }),
+                            '🎤',
                             isListening ? '🔴 Parar' : '🎤 Micrófono'
                         ])
                     ]),
 
-                    // Bass Guitar optimizado para móvil
                     React.createElement('div', { className: "bg-gradient-to-r from-amber-800 to-amber-900 rounded-xl p-4 sm:p-8 shadow-2xl mb-4 sm:mb-8 mx-2 sm:mx-0" }, [
                         React.createElement('div', { className: "relative" }, [
-                            // Neck
                             React.createElement('div', { className: "bg-amber-700 h-24 sm:h-32 rounded-lg relative overflow-hidden" }, [
-                                // Frets (menos en móvil)
                                 ...Array.from({length: isMobile ? 3 : 5}, (_, i) => 
                                     React.createElement('div', {
                                         key: i,
@@ -547,7 +526,6 @@
                                     })
                                 ),
                                 
-                                // Strings (más grandes para touch)
                                 ...Object.entries(bassNotes).map(([stringNum, noteData]) =>
                                     React.createElement('div', {
                                         key: stringNum,
@@ -562,7 +540,6 @@
                                             playNote(parseInt(stringNum), e);
                                         }
                                     }, [
-                                        // String line (más visible en móvil)
                                         React.createElement('div', {
                                             className: `w-full transition-all duration-300 ${
                                                 activeString === parseInt(stringNum) 
@@ -579,7 +556,6 @@
                                             }
                                         }),
                                         
-                                        // Note label (adaptado para móvil)
                                         showNotes && React.createElement('div', {
                                             className: "absolute bg-white px-2 sm:px-3 py-1 rounded-full shadow-lg text-xs sm:text-sm font-bold flex items-center gap-1",
                                             style: { 
@@ -598,53 +574,50 @@
                                 )
                             ]),
                             
-                            // Body (más pequeño en móvil)
                             React.createElement('div', { className: `bg-red-600 rounded-lg shadow-xl mt-2 sm:mt-4 mx-auto relative ${isMobile ? 'w-24 h-32' : 'w-32 h-40'}` }, [
                                 React.createElement('div', { className: "absolute inset-3 sm:inset-4 bg-red-700 rounded-lg" }),
                                 React.createElement('div', { className: "absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2" }, [
                                     React.createElement('div', { className: `bg-gray-300 rounded-full shadow-inner flex items-center justify-center ${isMobile ? 'w-6 h-6' : 'w-8 h-8'}` }, [
-                                        React.createElement(Heart, { className: "text-red-800", size: isMobile ? 12 : 16 })
+                                        '💖'
                                     ])
                                 ])
                             ])
                         ])
                     ]),
 
-                    // Controls (adaptados para móvil)
                     React.createElement('div', { className: "flex flex-wrap justify-center gap-2 sm:gap-4 mb-4 sm:mb-8 px-2" }, [
                         React.createElement('button', {
                             onClick: playInspiredSong,
                             disabled: isPlaying,
                             className: "touch-btn bg-green-500 hover:bg-green-600 text-white px-3 sm:px-6 py-2 sm:py-3 rounded-full shadow-lg disabled:opacity-50 flex items-center gap-2 font-bold text-xs sm:text-base"
                         }, [
-                            React.createElement(isPlaying ? Pause : Play, { size: isMobile ? 16 : 20 }),
-                            isPlaying ? '🎵 Tocando...' : '🎶 Canción'
+                            (isPlaying ? '⏸️' : '▶️'),
+                            isPlaying ? ' 🎵 Tocando...' : ' 🎶 Canción'
                         ]),
                         
                         React.createElement('button', {
                             onClick: () => setShowNotes(!showNotes),
                             className: "touch-btn bg-blue-500 hover:bg-blue-600 text-white px-3 sm:px-6 py-2 sm:py-3 rounded-full shadow-lg flex items-center gap-2 font-bold text-xs sm:text-base"
                         }, [
-                            React.createElement(Music, { size: isMobile ? 16 : 20 }),
-                            showNotes ? '👁️ Ocultar' : '👀 Mostrar'
+                            '🎵',
+                            showNotes ? ' 👁️ Ocultar' : ' 👀 Mostrar'
                         ]),
                         
                         React.createElement('button', {
                             onClick: resetLesson,
                             className: "touch-btn bg-orange-500 hover:bg-orange-600 text-white px-3 sm:px-6 py-2 sm:py-3 rounded-full shadow-lg flex items-center gap-2 font-bold text-xs sm:text-base"
                         }, [
-                            React.createElement(RotateCcw, { size: isMobile ? 16 : 20 }),
-                            '🔄 Reset'
+                            '🔄',
+                            ' Reset'
                         ])
                     ]),
 
-                    // Achievements (compactos)
                     achievements.length > 0 && React.createElement('div', { className: "bg-gradient-to-r from-yellow-200 to-pink-200 rounded-xl p-3 sm:p-6 shadow-xl mb-4 sm:mb-8 mx-2 sm:mx-0" }, [
                         React.createElement('h3', {
                             className: "text-sm sm:text-xl font-bold text-purple-800 mb-2 sm:mb-3 flex items-center gap-2"
                         }, [
-                            React.createElement(Trophy, { className: "text-yellow-600", size: isMobile ? 16 : 20 }),
-                            '🏆 ¡Logros!'
+                            '🏆',
+                            ' ¡Logros!'
                         ]),
                         React.createElement('div', { className: "flex flex-wrap gap-1 sm:gap-2" }, 
                             achievements.slice(-6).map((achievement, index) =>
@@ -656,7 +629,6 @@
                         )
                     ]),
 
-                    // Tips (simplificados para móvil)
                     React.createElement('div', { className: "bg-yellow-100 rounded-xl p-3 sm:p-6 shadow-xl mb-4 sm:mb-8 mx-2 sm:mx-0" }, [
                         React.createElement('h3', {
                             className: "text-sm sm:text-xl font-bold text-yellow-800 mb-2 sm:mb-3"
@@ -670,13 +642,12 @@
                         ])
                     ]),
 
-                    // Mobile GitHub info (simplificado)
                     React.createElement('div', { className: "bg-gray-100 rounded-xl p-3 sm:p-6 shadow-xl mx-2 sm:mx-0" }, [
                         React.createElement('h3', {
                             className: "text-sm sm:text-xl font-bold text-gray-800 mb-2 sm:mb-3 flex items-center gap-2"
                         }, [
-                            React.createElement(Github, { className: "text-gray-600", size: isMobile ? 16 : 20 }),
-                            "📱 App Lista para Compartir"
+                            '💻',
+                            " App Lista para Compartir"
                         ]),
                         React.createElement('div', { className: "text-gray-600 text-xs sm:text-sm" }, 
                             isMobile ? 
@@ -688,7 +659,9 @@
             ]);
         };
 
-        ReactDOM.render(React.createElement(BassGuitarApp), document.getElementById('root'));
+        const container = document.getElementById('root');
+        const root = ReactDOM.createRoot(container);
+        root.render(React.createElement(BassGuitarApp));
     </script>
 </body>
 </html>
