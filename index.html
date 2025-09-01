@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Bajo Eloisa">
+    <meta name="mobile-web-app-capable" content="yes">
+    <title>🎸 Bajo Eléctrico para Eloisa 💕</title>
+    
+    <!-- Scripts -->
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lucide/0.263.1/umd/lucide.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogIkJham8gRWzDqWN0cmljbyBwYXJhIEVsb2lzYSIsCiAgInNob3J0X25hbWUiOiAiQmFqbyBFbG9pc2EiLAogICJzdGFydF91cmwiOiAiLiIsCiAgImRpc3BsYXkiOiAic3RhbmRhbG9uZSIsCiAgImJhY2tncm91bmRfY29sb3IiOiAiIzY2MzNmZiIsCiAgInRoZW1lX2NvbG9yIjogIiNmZjZiOWQiLAogICJpY29ucyI6IFsKICAgIHsKICAgICAgInNyYyI6ICJkYXRhOmltYWdlL3N2Zyt4bWw7YmFzZTY0LFBITjJaeUI0Yld4dWN6MGlhSFIwY0RvdkwzZDNkeTUzTXk1dmNtY3ZNakF3TUM5emRtY2lJSGRwWkhSb1BTSXlOREFpSUdobGFXZG9kRDBpTWpRd0lqNDhjbVZqZENCM2FXUjBhRDBpTWpRd0lpQm9aV2xuYUhROUlqSTBNQ0lpSUdacGJHdzlJaU5tWmpaaU9XUWlMejQ4TDBOMlp6ND0iLAogICAgICAic2l6ZXMiOiAiMjQweDI0MCIsCiAgICAgICJ0eXBlIjogImltYWdlL3N2Zyt4bWwiCiAgICB9CiAgXQp9">
+    
+    <style>
+        /* Optimizaciones móviles críticas */
+        * {
+            -webkit-tap-highlight-color: transparent;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+
+        body {
+            overscroll-behavior: none;
+            -webkit-overflow-scrolling: touch;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+        }
+
+        .touch-btn {
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: rgba(0,0,0,0.1);
+            min-height: 44px;
+            min-width: 44px;
+        }
+
+        .string-area {
+            min-height: 50px; /* Área táctil más grande */
+            cursor: pointer;
+        }
+
+        /* Animaciones optimizadas */
+        @keyframes float {
+            0% { transform: translateY(0px) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(-80px) rotate(360deg); opacity: 0; }
+        }
+        
+        @keyframes bounce {
+            0%, 20%, 53%, 80%, 100% { transform: translate3d(0, 0, 0); }
+            40%, 43% { transform: translate3d(0, -8px, 0); }
+            70% { transform: translate3d(0, -4px, 0); }
+            90% { transform: translate3d(0, -2px, 0); }
+        }
+        
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 20px rgba(255, 107, 157, 0.5); }
+            50% { box-shadow: 0 0 40px rgba(255, 107, 157, 0.8); }
+        }
+        
+        .float { animation: float 1.5s ease-out forwards; }
+        .bounce { animation: bounce 0.8s infinite; }
+        .pulse-glow { animation: pulse-glow 1s infinite; }
+
+        /* Feedback táctil para móviles */
+        @media (hover: none) and (pointer: coarse) {
+            .touch-btn:active {
+                transform: scale(0.95);
+                transition: transform 0.1s;
+            }
+            
+            .string-area:active {
+                transform: scale(1.05);
+                transition: transform 0.1s;
+            }
+        }
+
+        /* Mejores contrastes para móvil */
+        .mobile-text {
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+
+        /* Scrollbar personalizada */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(255,255,255,0.1);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255,255,255,0.3);
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useCallback, useRef } = React;
+        const { 
+            Music, Volume2, Play, Pause, RotateCcw, Star, 
+            Heart, Mic, Trophy, Github, Smartphone, Zap, Sparkles
+        } = lucide;
+
+        // Audio Context optimizado para móvil
+        let audioContext;
+        let masterGainNode;
+        let analyserNode;
+
+        const initAudioContext = () => {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                masterGainNode = audioContext.createGain();
+                analyserNode = audioContext.createAnalyser();
+                
+                masterGainNode.connect(analyserNode);
+                analyserNode.connect(audioContext.destination);
+                masterGainNode.gain.value = 0.25; // Volumen más bajo para móvil
+                
+                analyserNode.fftSize = 1024; // Menor para mejor rendimiento móvil
+            }
+            return audioContext;
+        };
+
+        // Vibración para feedback táctil en móvil
+        const vibrate = (pattern = [50]) => {
+            if ('vibrate' in navigator) {
+                navigator.vibrate(pattern);
+            }
+        };
+
+        const BassGuitarApp = () => {
+            const [currentLesson, setCurrentLesson] = useState(0);
+            const [isPlaying, setIsPlaying] = useState(false);
+            const [score, setScore] = useState(0);
+            const [activeString, setActiveString] = useState(null);
+            const [showNotes, setShowNotes] = useState(true);
+            const [hearts, setHearts] = useState([]);
+            const [isListening, setIsListening] = useState(false);
+            const [detectedNote, setDetectedNote] = useState('');
+            const [streak, setStreak] = useState(0);
+            const [achievements, setAchievements] = useState([]);
+            const [showPrize, setShowPrize] = useState('');
+            const [isMobile, setIsMobile] = useState(false);
+
+            const streamRef = useRef(null);
+            const animationRef = useRef(null);
+            const containerRef = useRef(null);
+
+            // Detectar si es móvil
+            useEffect(() => {
+                const checkMobile = () => {
+                    setIsMobile(window.innerWidth <= 768 || 'ontouchstart' in window);
+                };
+                checkMobile();
+                window.addEventListener('resize', checkMobile);
+                return () => window.removeEventListener('resize', checkMobile);
+            }, []);
+
+            // Notas del bajo optimizadas para móvil
+            const bassNotes = {
+                1: { note: 'G', freq: 98, color: '#FF6B9D', name: 'Sol', emoji: '🌸' },
+                2: { note: 'D', freq: 73.42, color: '#4ECDC4', name: 'Re', emoji: '💎' },
+                3: { note: 'A', freq: 55, color: '#FFE66D', name: 'La', emoji: '⭐' },
+                4: { note: 'E', freq: 41.2, color: '#A8E6CF', name: 'Mi', emoji: '🌿' }
+            };
+
+            // Canción mejorada para móvil
+            const inspiredSong = [
+                { string: 4, duration: 600, note: 'Mi' },
+                { string: 3, duration: 600, note: 'La' },
+                { string: 2, duration: 600, note: 'Re' },
+                { string: 1, duration: 600, note: 'Sol' },
+                { string: 4, duration: 300, note: 'Mi' },
+                { string: 3, duration: 300, note: 'La' },
+                { string: 2, duration: 900, note: 'Re' },
+            ];
+
+            const lessons = [
+                {
+                    title: "¡Hola! Conoce tu Bajo 🎸",
+                    description: "Toca cada cuerda para escuchar",
+                    target: null,
+                    instructions: "Cuerdas: Mi (E) • La (A) • Re (D) • Sol (G)",
+                    emoji: "👋"
+                },
+                {
+                    title: "Cuerda Mi (E) 🌿",
+                    description: "Toca la cuerda más gruesa",
+                    target: 4,
+                    instructions: "La más grave y gruesa - ¡Como un rugido suave!",
+                    emoji: "🎯"
+                },
+                {
+                    title: "Cuerda Sol (G) 🌸",
+                    description: "Toca la cuerda más delgada",
+                    target: 1,
+                    instructions: "La más aguda - ¡Como un canto de pájaros!",
+                    emoji: "🎵"
+                },
+                {
+                    title: "¡Tu Primera Melodía! 🌟",
+                    description: "Mi → La → Re → Sol",
+                    target: 'sequence',
+                    instructions: "¡Sigue el orden y crea música!",
+                    emoji: "🎊"
+                }
+            ];
+
+            const prizes = [
+                "¡Estrella Brillante! 🌟", "¡Corazón de Oro! 💖", "¡Rayo Musical! ⚡", 
+                "¡Nota Mágica! 🎵", "¡Bajista Genial! 🏆", "¡Arcoíris Sonoro! 🌈"
+            ];
+
+            const createHearts = useCallback((x, y) => {
+                // Adaptar posición para móvil
+                const rect = containerRef.current?.getBoundingClientRect();
+                const adjustedX = isMobile ? (rect ? x - rect.left : x) : x;
+                const adjustedY = isMobile ? (rect ? y - rect.top : y) : y;
+
+                const newHearts = [];
+                const heartCount = isMobile ? 3 : 5; // Menos corazones en móvil para rendimiento
+                
+                for (let i = 0; i < heartCount; i++) {
+                    newHearts.push({
+                        id: Date.now() + i,
+                        x: adjustedX + (Math.random() - 0.5) * (isMobile ? 60 : 100),
+                        y: adjustedY,
+                        emoji: ['💖', '💝', '💕', '💗', '🎵', '⭐', '✨', '🌟'][Math.floor(Math.random() * 8)]
+                    });
+                }
+                setHearts(prev => [...prev, ...newHearts]);
+                
+                // Vibrar en móvil
+                vibrate([30]);
+                
+                setTimeout(() => {
+                    setHearts(prev => prev.filter(heart => !newHearts.some(newHeart => newHeart.id === heart.id)));
+                }, 1500);
+            }, [isMobile]);
+
+            const showPrizeAnimation = (prize) => {
+                setShowPrize(prize);
+                vibrate([100, 50, 100]); // Vibración especial para premios
+                setTimeout(() => setShowPrize(''), 2500);
+            };
+
+            const getFrequencyFromAudio = (dataArray, sampleRate) => {
+                const nyquist = sampleRate / 2;
+                const fundamentalFreq = nyquist / dataArray.length;
+                
+                let maxIndex = 0;
+                let maxValue = 0;
+                
+                for (let i = 1; i < dataArray.length / 2; i++) {
+                    if (dataArray[i] > maxValue) {
+                        maxValue = dataArray[i];
+                        maxIndex = i;
+                    }
+                }
+                
+                return maxIndex * fundamentalFreq;
+            };
+
+            const detectNote = (frequency) => {
+                const notes = [
+                    { name: 'Mi', freq: 41.2, tolerance: 8 },
+                    { name: 'La', freq: 55, tolerance: 8 },
+                    { name: 'Re', freq: 73.42, tolerance: 8 },
+                    { name: 'Sol', freq: 98, tolerance: 8 }
+                ];
+                
+                for (let note of notes) {
+                    if (Math.abs(frequency - note.freq) < note.tolerance) {
+                        return note.name;
+                    }
+                }
+                return null;
+            };
+
+            const startListening = async () => {
+                try {
+                    const ctx = initAudioContext();
+                    const stream = await navigator.mediaDevices.getUserMedia({ 
+                        audio: { 
+                            echoCancellation: true,
+                            noiseSuppression: true,
+                            autoGainControl: true
+                        } 
+                    });
+                    streamRef.current = stream;
+                    
+                    const source = ctx.createMediaStreamSource(stream);
+                    source.connect(analyserNode);
+                    
+                    setIsListening(true);
+                    vibrate([200]);
+                    
+                    const dataArray = new Uint8Array(analyserNode.frequencyBinCount);
+                    
+                    const analyze = () => {
+                        analyserNode.getByteFrequencyData(dataArray);
+                        
+                        const frequency = getFrequencyFromAudio(dataArray, ctx.sampleRate);
+                        const note = detectNote(frequency);
+                        
+                        if (note) {
+                            setDetectedNote(note);
+                            if (lessons[currentLesson].target && 
+                                bassNotes[lessons[currentLesson].target]?.name === note) {
+                                setScore(prev => prev + 20);
+                                setStreak(prev => prev + 1);
+                                createHearts(300, 200);
+                                
+                                if (streak > 0 && streak % 2 === 0) {
+                                    const prize = prizes[Math.floor(Math.random() * prizes.length)];
+                                    showPrizeAnimation(prize);
+                                    setAchievements(prev => [...prev, prize]);
+                                }
+                            }
+                        }
+                        
+                        if (isListening) {
+                            animationRef.current = requestAnimationFrame(analyze);
+                        }
+                    };
+                    
+                    analyze();
+                    
+                    if (isMobile) {
+                        alert('🎤 ¡Micrófono listo! Toca tu bajo cerca del teléfono 🎸');
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    alert('🎤 No se puede usar el micrófono. ¡Pero puedes tocar las cuerdas virtuales! 😊');
+                }
+            };
+
+            const stopListening = () => {
+                setIsListening(false);
+                if (streamRef.current) {
+                    streamRef.current.getTracks().forEach(track => track.stop());
+                }
+                if (animationRef.current) {
+                    cancelAnimationFrame(animationRef.current);
+                }
+                setDetectedNote('');
+                vibrate([100]);
+            };
+
+            const playNote = useCallback((stringNum, event) => {
+                const ctx = initAudioContext();
+                if (ctx.state === 'suspended') {
+                    ctx.resume();
+                }
+
+                const { freq } = bassNotes[stringNum];
+                
+                // Audio optimizado para móvil
+                const oscillator = ctx.createOscillator();
+                const gainNode = ctx.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(masterGainNode);
+                
+                oscillator.frequency.setValueAtTime(freq, ctx.currentTime);
+                oscillator.type = 'sawtooth';
+                
+                // Envelope más rápido para móvil
+                gainNode.gain.setValueAtTime(0, ctx.currentTime);
+                gainNode.gain.linearRampToValueAtTime(0.6, ctx.currentTime + 0.005);
+                gainNode.gain.exponentialRampToValueAtTime(0.3, ctx.currentTime + 0.08);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 1.2);
+                
+                oscillator.start(ctx.currentTime);
+                oscillator.stop(ctx.currentTime + 1.2);
+                
+                setActiveString(stringNum);
+                setTimeout(() => setActiveString(null), 150);
+                
+                // Crear corazones
+                if (event) {
+                    const touch = event.touches?.[0] || event;
+                    createHearts(touch.clientX || event.clientX, touch.clientY || event.clientY);
+                }
+                
+                // Lógica de lecciones
+                if (lessons[currentLesson].target === stringNum) {
+                    setScore(score + 15);
+                    setStreak(prev => prev + 1);
+                    if (currentLesson < lessons.length - 1) {
+                        setTimeout(() => setCurrentLesson(currentLesson + 1), 800);
+                    }
+                    
+                    if (streak > 0 && streak % 2 === 0) {
+                        const prize = prizes[Math.floor(Math.random() * prizes.length)];
+                        showPrizeAnimation(prize);
+                        setAchievements(prev => [...prev, prize]);
+                    }
+                }
+            }, [currentLesson, score, createHearts, streak]);
+
+            const playInspiredSong = () => {
+                setIsPlaying(true);
+                let index = 0;
+                
+                const playNext = () => {
+                    if (index < inspiredSong.length) {
+                        playNote(inspiredSong[index].string);
+                        index++;
+                        setTimeout(playNext, inspiredSong[index - 1]?.duration || 600);
+                    } else {
+                        setIsPlaying(false);
+                        setScore(prev => prev + 100);
+                        showPrizeAnimation("¡Canción Completada! 🎉✨");
+                    }
+                };
+                
+                playNext();
+            };
+
+            const resetLesson = () => {
+                setCurrentLesson(0);
+                setScore(0);
+                setStreak(0);
+                setAchievements([]);
+                vibrate([50, 50]);
+            };
+
+            return React.createElement('div', {
+                ref: containerRef,
+                className: "min-h-screen bg-gradient-to-br from-purple-400 via-pink-300 to-yellow-300 p-2 sm:p-4 relative overflow-hidden"
+            }, [
+                // Floating Hearts (optimizados para móvil)
+                ...hearts.map(heart => React.createElement('div', {
+                    key: heart.id,
+                    className: "absolute text-xl sm:text-2xl pointer-events-none float z-50",
+                    style: {
+                        left: heart.x,
+                        top: heart.y
+                    }
+                }, heart.emoji)),
+
+                // Prize Animation (optimizado)
+                showPrize && React.createElement('div', {
+                    className: "fixed inset-0 flex items-center justify-center z-50 pointer-events-none px-4"
+                }, React.createElement('div', {
+                    className: "text-3xl sm:text-6xl font-bold text-yellow-400 animate-pulse bg-purple-900 bg-opacity-80 px-4 sm:px-8 py-2 sm:py-4 rounded-2xl shadow-2xl text-center pulse-glow"
+                }, showPrize)),
+
+                React.createElement('div', { className: "max-w-4xl mx-auto relative" }, [
+                    // Header optimizado para móvil
+                    React.createElement('div', { className: "text-center mb-4 sm:mb-8" }, [
+                        React.createElement('h1', {
+                            className: "text-2xl sm:text-4xl font-bold text-white mb-2 flex items-center justify-center gap-2 flex-wrap mobile-text"
+                        }, [
+                            React.createElement(Music, { className: "text-pink-600", size: isMobile ? 30 : 40 }),
+                            "🎸 Bajo para Eloisa 💕",
+                            React.createElement(Star, { className: "text-yellow-400 bounce", size: isMobile ? 30 : 40 })
+                        ]),
+                        React.createElement('p', {
+                            className: "text-white text-sm sm:text-lg mobile-text"
+                        }, "¡Aprende y diviértete tocando! 🎵"),
+                        
+                        // Indicador móvil
+                        isMobile && React.createElement('div', {
+                            className: "mt-2 bg-white bg-opacity-20 rounded-full px-3 py-1 inline-flex items-center gap-1"
+                        }, [
+                            React.createElement(Smartphone, { size: 16, className: "text-white" }),
+                            React.createElement('span', {
+                                className: "text-white text-xs"
+                            }, "Modo Móvil Activado! 📱")
+                        ])
+                    ]),
+
+                    // Stats compactos para móvil
+                    React.createElement('div', { className: "flex justify-center gap-2 sm:gap-4 mb-4 sm:mb-6 flex-wrap px-2" }, [
+                        React.createElement('div', {
+                            className: "bg-white rounded-full px-2 sm:px-4 py-1 sm:py-2 shadow-lg"
+                        }, React.createElement('span', {
+                            className: "text-purple-600 font-bold text-xs sm:text-sm"
+                        }, `${score} ⭐`)),
+                        
+                        React.createElement('div', {
+                            className: "bg-white rounded-full px-2 sm:px-4 py-1 sm:py-2 shadow-lg"
+                        }, React.createElement('span', {
+                            className: "text-pink-600 font-bold text-xs sm:text-sm"
+                        }, `${currentLesson + 1}/${lessons.length}`)),
+                        
+                        React.createElement('div', {
+                            className: "bg-white rounded-full px-2 sm:px-4 py-1 sm:py-2 shadow-lg"
+                        }, React.createElement('span', {
+                            className: "text-green-600 font-bold text-xs sm:text-sm"
+                        }, `${streak} 🔥`)),
+
+                        detectedNote && React.createElement('div', {
+                            className: "bg-yellow-200 rounded-full px-2 sm:px-4 py-1 sm:py-2 shadow-lg"
+                        }, React.createElement('span', {
+                            className: "text-yellow-800 font-bold text-xs sm:text-sm"
+                        }, `${detectedNote} 🎵`))
+                    ]),
+
+                    // Lesson Info compacto
+                    React.createElement('div', { className: "bg-white rounded-xl p-3 sm:p-6 shadow-xl mb-4 sm:mb-8 mx-2 sm:mx-0" }, [
+                        React.createElement('h2', {
+                            className: "text-lg sm:text-2xl font-bold text-gray-800 mb-1 sm:mb-2"
+                        }, lessons[currentLesson].title),
+                        React.createElement('p', {
+                            className: "text-gray-600 mb-2 text-sm sm:text-base"
+                        }, lessons[currentLesson].description),
+                        React.createElement('p', {
+                            className: "text-xs sm:text-sm text-blue-600 bg-blue-50 p-2 sm:p-3 rounded-lg"
+                        }, lessons[currentLesson].instructions)
+                    ]),
+
+                    // Micrófono (simplificado para móvil)
+                    React.createElement('div', { className: "flex justify-center mb-4 sm:mb-6" }, [
+                        React.createElement('button', {
+                            onClick: isListening ? stopListening : startListening,
+                            className: `touch-btn ${isListening ? 'bg-red-500 hover:bg-red-600' : 'bg-green-500 hover:bg-green-600'} text-white px-3 sm:px-6 py-2 sm:py-3 rounded-full shadow-lg flex items-center gap-2 font-bold text-sm sm:text-base`
+                        }, [
+                            React.createElement(Mic, { size: isMobile ? 18 : 20 }),
+                            isListening ? '🔴 Parar' : '🎤 Micrófono'
+                        ])
+                    ]),
+
+                    // Bass Guitar optimizado para móvil
+                    React.createElement('div', { className: "bg-gradient-to-r from-amber-800 to-amber-900 rounded-xl p-4 sm:p-8 shadow-2xl mb-4 sm:mb-8 mx-2 sm:mx-0" }, [
+                        React.createElement('div', { className: "relative" }, [
+                            // Neck
+                            React.createElement('div', { className: "bg-amber-700 h-24 sm:h-32 rounded-lg relative overflow-hidden" }, [
+                                // Frets (menos en móvil)
+                                ...Array.from({length: isMobile ? 3 : 5}, (_, i) => 
+                                    React.createElement('div', {
+                                        key: i,
+                                        className: "absolute bg-gray-300 h-full w-1 opacity-30",
+                                        style: { left: `${20 + i * 20}%` }
+                                    })
+                                ),
+                                
+                                // Strings (más grandes para touch)
+                                ...Object.entries(bassNotes).map(([stringNum, noteData]) =>
+                                    React.createElement('div', {
+                                        key: stringNum,
+                                        className: "absolute w-full flex items-center cursor-pointer transform active:scale-105 transition-all duration-200 string-area touch-btn",
+                                        style: { 
+                                            top: `${(parseInt(stringNum) - 1) * (isMobile ? 22 : 25) + (isMobile ? 8 : 10)}%`,
+                                            height: isMobile ? '20%' : '15%'
+                                        },
+                                        onClick: (e) => playNote(parseInt(stringNum), e),
+                                        onTouchEnd: (e) => {
+                                            e.preventDefault();
+                                            playNote(parseInt(stringNum), e);
+                                        }
+                                    }, [
+                                        // String line (más visible en móvil)
+                                        React.createElement('div', {
+                                            className: `w-full transition-all duration-300 ${
+                                                activeString === parseInt(stringNum) 
+                                                    ? 'shadow-lg transform scale-y-150 pulse-glow' 
+                                                    : ''
+                                            }`,
+                                            style: { 
+                                                backgroundColor: noteData.color,
+                                                height: `${6 - parseInt(stringNum)}px`,
+                                                minHeight: '3px',
+                                                boxShadow: activeString === parseInt(stringNum) 
+                                                    ? `0 0 ${isMobile ? '15' : '20'}px ${noteData.color}` 
+                                                    : 'none'
+                                            }
+                                        }),
+                                        
+                                        // Note label (adaptado para móvil)
+                                        showNotes && React.createElement('div', {
+                                            className: "absolute bg-white px-2 sm:px-3 py-1 rounded-full shadow-lg text-xs sm:text-sm font-bold flex items-center gap-1",
+                                            style: { 
+                                                color: noteData.color,
+                                                left: isMobile ? '-50px' : '-60px',
+                                                fontSize: isMobile ? '11px' : '14px'
+                                            }
+                                        }, [
+                                            noteData.emoji,
+                                            ` ${noteData.name}`,
+                                            detectedNote === noteData.name && React.createElement('span', {
+                                                className: "text-green-500"
+                                            }, '✓')
+                                        ])
+                                    ])
+                                )
+                            ]),
+                            
+                            // Body (más pequeño en móvil)
+                            React.createElement('div', { className: `bg-red-600 rounded-lg shadow-xl mt-2 sm:mt-4 mx-auto relative ${isMobile ? 'w-24 h-32' : 'w-32 h-40'}` }, [
+                                React.createElement('div', { className: "absolute inset-3 sm:inset-4 bg-red-700 rounded-lg" }),
+                                React.createElement('div', { className: "absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2" }, [
+                                    React.createElement('div', { className: `bg-gray-300 rounded-full shadow-inner flex items-center justify-center ${isMobile ? 'w-6 h-6' : 'w-8 h-8'}` }, [
+                                        React.createElement(Heart, { className: "text-red-800", size: isMobile ? 12 : 16 })
+                                    ])
+                                ])
+                            ])
+                        ])
+                    ]),
+
+                    // Controls (adaptados para móvil)
+                    React.createElement('div', { className: "flex flex-wrap justify-center gap-2 sm:gap-4 mb-4 sm:mb-8 px-2" }, [
+                        React.createElement('button', {
+                            onClick: playInspiredSong,
+                            disabled: isPlaying,
+                            className: "touch-btn bg-green-500 hover:bg-green-600 text-white px-3 sm:px-6 py-2 sm:py-3 rounded-full shadow-lg disabled:opacity-50 flex items-center gap-2 font-bold text-xs sm:text-base"
+                        }, [
+                            React.createElement(isPlaying ? Pause : Play, { size: isMobile ? 16 : 20 }),
+                            isPlaying ? '🎵 Tocando...' : '🎶 Canción'
+                        ]),
+                        
+                        React.createElement('button', {
+                            onClick: () => setShowNotes(!showNotes),
+                            className: "touch-btn bg-blue-500 hover:bg-blue-600 text-white px-3 sm:px-6 py-2 sm:py-3 rounded-full shadow-lg flex items-center gap-2 font-bold text-xs sm:text-base"
+                        }, [
+                            React.createElement(Music, { size: isMobile ? 16 : 20 }),
+                            showNotes ? '👁️ Ocultar' : '👀 Mostrar'
+                        ]),
+                        
+                        React.createElement('button', {
+                            onClick: resetLesson,
+                            className: "touch-btn bg-orange-500 hover:bg-orange-600 text-white px-3 sm:px-6 py-2 sm:py-3 rounded-full shadow-lg flex items-center gap-2 font-bold text-xs sm:text-base"
+                        }, [
+                            React.createElement(RotateCcw, { size: isMobile ? 16 : 20 }),
+                            '🔄 Reset'
+                        ])
+                    ]),
+
+                    // Achievements (compactos)
+                    achievements.length > 0 && React.createElement('div', { className: "bg-gradient-to-r from-yellow-200 to-pink-200 rounded-xl p-3 sm:p-6 shadow-xl mb-4 sm:mb-8 mx-2 sm:mx-0" }, [
+                        React.createElement('h3', {
+                            className: "text-sm sm:text-xl font-bold text-purple-800 mb-2 sm:mb-3 flex items-center gap-2"
+                        }, [
+                            React.createElement(Trophy, { className: "text-yellow-600", size: isMobile ? 16 : 20 }),
+                            '🏆 ¡Logros!'
+                        ]),
+                        React.createElement('div', { className: "flex flex-wrap gap-1 sm:gap-2" }, 
+                            achievements.slice(-6).map((achievement, index) =>
+                                React.createElement('span', {
+                                    key: index,
+                                    className: "bg-white px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-bold text-purple-600 shadow"
+                                }, achievement)
+                            )
+                        )
+                    ]),
+
+                    // Tips (simplificados para móvil)
+                    React.createElement('div', { className: "bg-yellow-100 rounded-xl p-3 sm:p-6 shadow-xl mb-4 sm:mb-8 mx-2 sm:mx-0" }, [
+                        React.createElement('h3', {
+                            className: "text-sm sm:text-xl font-bold text-yellow-800 mb-2 sm:mb-3"
+                        }, "💡 Tips para Eloisa:"),
+                        React.createElement('div', { className: "text-yellow-700 text-xs sm:text-sm space-y-1 sm:space-y-2" }, [
+                            React.createElement('p', {}, "🎸 Cuerdas gruesas = sonidos graves"),
+                            React.createElement('p', {}, "✨ Cuerdas delgadas = sonidos agudos"),
+                            React.createElement('p', {}, "💖 ¡Cada nota suma puntos!"),
+                            isMobile && React.createElement('p', {}, "📱 Perfecto para tu celular!"),
+                            React.createElement('p', {}, "🌟 ¡Práctica y serás genial!")
+                        ])
+                    ]),
+
+                    // Mobile GitHub info (simplificado)
+                    React.createElement('div', { className: "bg-gray-100 rounded-xl p-3 sm:p-6 shadow-xl mx-2 sm:mx-0" }, [
+                        React.createElement('h3', {
+                            className: "text-sm sm:text-xl font-bold text-gray-800 mb-2 sm:mb-3 flex items-center gap-2"
+                        }, [
+                            React.createElement(Github, { className: "text-gray-600", size: isMobile ? 16 : 20 }),
+                            "📱 App Lista para Compartir"
+                        ]),
+                        React.createElement('div', { className: "text-gray-600 text-xs sm:text-sm" }, 
+                            isMobile ? 
+                            "¡Esta app funciona perfectamente en tu celular! Puedes guardarla en tu pantalla de inicio." :
+                            "Sube este código a GitHub Pages y Eloisa podrá usarla desde cualquier dispositivo."
+                        )
+                    ])
+                ])
+            ]);
+        };
+
+        ReactDOM.render(React.createElement(BassGuitarApp), document.getElementById('root'));
+    </script>
+</body>
+</html>
